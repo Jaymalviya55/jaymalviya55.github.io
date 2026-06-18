@@ -3,16 +3,16 @@ import { PortfolioData } from "../types";
 
 export const portfolioData: PortfolioData = {
   bio: {
-    name: "Mohan Kumar Paluru",
-    title: "Python & AWS Data Engineer\nData Alchemist — Turning Data into Insight",
+    name: "Jay Malviya",
+    title: "Software Engineer & Full Stack Developer\nAlgorithm Alchemist: Turning basic lines of text into pure gold.",
     description: [
-      "I am a tech enthusiast specializing in Python web development, data engineering, and AWS cloud technologies.",
-      "My expertise lies in designing and optimizing robust data pipelines, crafting Python backends, and implementing efficient automation scripts.",
-      "I excel in solving intricate data problems by delivering efficient solutions with clean, easy-to-maintain code.",
-      "My goal is to continually grow as a developer and bring creativity and precision to every project I undertake.",
+      "I am a tech enthusiast specializing in full stack web development.",
+      "I build robust, scalable, and efficient web applications using modern technologies.",
+      "My expertise lies in full-stack development, database design, and creating seamless user experiences.",
+      "I am passionate about problem-solving and continuously explore new technologies to enhance my skills.",
     ],
     contacts: {
-      email: "mohankumarpaluru@gmail.com",
+      email: "[EMAIL_ADDRESS]",
       phone: "+91 984 87 88 984",
       location: "Tirupati, Andhra Pradesh, India",
       social: {
