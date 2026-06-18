@@ -16,7 +16,7 @@ export const portfolioData: PortfolioData = {
       phone: "+91 984 87 88 984",
       location: "Tirupati, Andhra Pradesh, India",
       social: {
-        linkedin: "https://linkedin.com/in/mohankumarpaluru",
+        linkedin: "https://www.linkedin.com/in/jay-malviya18",
         github: "https://github.com/mohankumarpaluru",
         twitter: "https://x.com/trixter127",
         instagram: "https://instagram.com/mohankumarpaluru",
