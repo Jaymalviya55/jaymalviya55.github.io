@@ -1,11 +1,33 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { PortfolioState } from '../../types';
 import { portfolioData } from '../../data/portfolioData';
 import { Section, ClarityHeader, hoverGradientText } from '../SectionUtils';
 
 export const Signal: React.FC = () => {
     const sectionData = portfolioData.sections.signal;
+    const [formData, setFormData] = useState({ name: '', email: '', message: '' });
+    const [status, setStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setStatus('submitting');
+        try {
+            const res = await fetch('http://localhost:3000/api/contact', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData)
+            });
+            if (res.ok) {
+                setStatus('success');
+                setFormData({ name: '', email: '', message: '' });
+            } else {
+                setStatus('error');
+            }
+        } catch {
+            setStatus('error');
+        }
+    };
 
     return (
         <Section index={PortfolioState.SIGNAL}>
@@ -17,15 +39,48 @@ export const Signal: React.FC = () => {
                     </h1>
                 </div>
 
-                <div className="flex flex-col items-center gap-6 md:gap-8 font-mono text-sm">
-                    <a href={`mailto:${portfolioData.bio.contacts.email}`} className="relative group inline-block">
-                        <div className="absolute inset-0 bg-gradient-to-r from-blue-400 via-cyan-500 to-teal-500 rounded blur opacity-25 group-hover:opacity-75 transition-opacity duration-500"></div>
-                        <div className="relative border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black text-slate-700 dark:text-slate-300 px-6 py-3 md:px-8 md:py-4 hover:text-black dark:hover:text-white transition-all text-sm md:text-lg flex items-center gap-2 rounded">
-                            <span className={`${hoverGradientText} transition-all break-all`}>{portfolioData.bio.contacts.email}</span>
-                        </div>
-                    </a>
+                <div className="flex flex-col items-center gap-6 md:gap-8 font-mono text-sm w-full max-w-md mx-auto">
+                    <form onSubmit={handleSubmit} className="w-full flex flex-col gap-4 text-left">
+                        <input 
+                            type="text" 
+                            placeholder="Your Name" 
+                            required 
+                            className="w-full p-3 bg-slate-50 dark:bg-black border border-slate-200 dark:border-white/10 rounded focus:outline-none focus:border-blue-500 dark:text-white"
+                            value={formData.name}
+                            onChange={e => setFormData({...formData, name: e.target.value})}
+                        />
+                        <input 
+                            type="email" 
+                            placeholder="Your Email" 
+                            required 
+                            className="w-full p-3 bg-slate-50 dark:bg-black border border-slate-200 dark:border-white/10 rounded focus:outline-none focus:border-blue-500 dark:text-white"
+                            value={formData.email}
+                            onChange={e => setFormData({...formData, email: e.target.value})}
+                        />
+                        <textarea 
+                            placeholder="Your Message" 
+                            required 
+                            rows={4}
+                            className="w-full p-3 bg-slate-50 dark:bg-black border border-slate-200 dark:border-white/10 rounded focus:outline-none focus:border-blue-500 dark:text-white"
+                            value={formData.message}
+                            onChange={e => setFormData({...formData, message: e.target.value})}
+                        ></textarea>
+                        
+                        <button 
+                            type="submit" 
+                            disabled={status === 'submitting'}
+                            className="relative group inline-block w-full"
+                        >
+                            <div className="absolute inset-0 bg-gradient-to-r from-blue-400 via-cyan-500 to-teal-500 rounded blur opacity-25 group-hover:opacity-75 transition-opacity duration-500"></div>
+                            <div className="relative border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black text-slate-700 dark:text-slate-300 px-6 py-3 md:px-8 md:py-4 hover:text-black dark:hover:text-white transition-all text-sm md:text-lg flex items-center justify-center gap-2 rounded w-full">
+                                <span className={`${hoverGradientText} transition-all break-all`}>
+                                    {status === 'submitting' ? 'SENDING...' : status === 'success' ? 'MESSAGE SENT!' : status === 'error' ? 'ERROR. TRY AGAIN.' : 'SEND MESSAGE'}
+                                </span>
+                            </div>
+                        </button>
+                    </form>
 
-                    <div className="flex flex-wrap justify-center gap-4 md:gap-8">
+                    <div className="flex flex-wrap justify-center gap-4 md:gap-8 mt-4">
                         {Object.entries(portfolioData.bio.contacts.social).map(([key, url]) => (
                             <a key={key} href={url} target="_blank" rel="noreferrer" className="text-slate-500 dark:text-slate-400 hover:text-black dark:hover:text-white capitalize transition-colors text-sm md:text-lg hover:underline decoration-blue-500/50 underline-offset-4">
                                 {key}
@@ -45,8 +100,8 @@ export const Signal: React.FC = () => {
                     </a>
                 </div>
 
-                <div className="mt-12 md:mt-24 text-xs md:text-sm text-slate-400 dark:text-slate-600 font-mono">
-                    END_OF_TRANSMISSION // 2026
+                <div className="mt-12 md:mt-24 text-xs md:text-sm text-slate-400 dark:text-slate-600 font-mono flex items-center justify-center gap-4">
+                    <span>END_OF_TRANSMISSION // 2026</span>
                 </div>
             </div>
         </Section>

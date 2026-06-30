@@ -1,5 +1,5 @@
 
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
 import Lenis from 'lenis';
 import { useScrollStore } from './store/useScrollStore';
@@ -14,6 +14,14 @@ const App: React.FC = () => {
   const setMousePosition = useScrollStore((state) => state.setMousePosition);
   const { theme } = useThemeStore();
   const lenisRef = useRef<Lenis | null>(null);
+  const [views, setViews] = useState<number | null>(null);
+
+  useEffect(() => {
+    fetch('http://localhost:3000/api/pageview', { method: 'POST' })
+      .then(res => res.json())
+      .then(data => setViews(data.views))
+      .catch(err => console.error("Could not record page view", err));
+  }, []);
 
   // Lenis & Scroll Handling
   useEffect(() => {
@@ -98,6 +106,16 @@ const App: React.FC = () => {
 
       {/* Fixed Overlays (Text Content) */}
       <Overlay />
+
+      {/* Page View Counter Overlay */}
+      {views !== null && (
+        <div className="fixed bottom-4 left-4 z-50 pointer-events-none">
+          <div className="bg-slate-900/80 backdrop-blur-md border border-slate-700/50 text-slate-300 px-4 py-2 rounded-full font-mono text-xs flex items-center gap-2 shadow-lg">
+            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+            Total Visitors: <span className="text-white font-bold">{views}</span>
+          </div>
+        </div>
+      )}
 
       {/* Height Spacer */}
       <div style={{ height: '800vh' }}></div>
