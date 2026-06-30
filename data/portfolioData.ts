@@ -6,19 +6,18 @@ export const portfolioData: PortfolioData = {
     name: "Jay Malviya",
     title: "Software Engineer & Full Stack Developer\nAlgorithm Alchemist: Turning basic lines of text into pure gold.",
     description: [
-      "I am a tech enthusiast specializing in full stack web development.",
+      "I am a tech enthusiast specializing in full stack web development and Data Engineer.",
       "I build robust, scalable, and efficient web applications using modern technologies.",
       "My expertise lies in full-stack development, database design, and creating seamless user experiences.",
       "I am passionate about problem-solving and continuously explore new technologies to enhance my skills.",
     ],
     contacts: {
-      email: "[EMAIL_ADDRESS]",
+      email: "jaymalviya556@gmail.com",
       phone: "+91 984 87 88 984",
       location: "Tirupati, Andhra Pradesh, India",
       social: {
         linkedin: "https://www.linkedin.com/in/jay-malviya18",
         github: "https://github.com/mohankumarpaluru",
-        twitter: "https://x.com/trixter127",
         instagram: "https://instagram.com/mohankumarpaluru",
         telegram: "https://telegram.dog/trixter127",
         whatsapp: "https://wa.me/919848788984",

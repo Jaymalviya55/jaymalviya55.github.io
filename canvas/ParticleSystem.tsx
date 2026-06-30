@@ -5,7 +5,7 @@ import * as THREE from 'three';
 import { useScrollStore } from '../store/useScrollStore';
 import { useThemeStore } from '../store/useThemeStore';
 import { PortfolioState, STATE_COUNT } from '../types';
-import { generatePositions, PARTICLE_COUNT } from './morphLogic';
+import { generateGeometry, PARTICLE_COUNT } from './morphLogic';
 
 export const ParticleSystem: React.FC = () => {
   const { viewport, scene } = useThree();
@@ -50,19 +50,19 @@ export const ParticleSystem: React.FC = () => {
 
   const geometries = useMemo(() => {
     const states = Object.values(PortfolioState).filter((v) => typeof v === 'number') as number[];
-    const result: Record<number, Float32Array> = {};
+    const result: Record<number, {positions: Float32Array, colors: Float32Array}> = {};
     states.forEach((s) => {
-      result[s] = generatePositions(s);
+      result[s] = generateGeometry(s);
     });
     return result;
   }, []);
 
-
-
   const currentPositions = useMemo(() => {
-    // Slice the initial buffer to match the active count
-    // Multiply by 3 because it's a flat array of x,y,z
-    return new Float32Array(geometries[PortfolioState.HERO].slice(0, activeParticleCount * 3));
+    return new Float32Array(geometries[PortfolioState.HERO].positions.slice(0, activeParticleCount * 3));
+  }, [geometries, activeParticleCount]);
+
+  const currentColors = useMemo(() => {
+    return new Float32Array(geometries[PortfolioState.HERO].colors.slice(0, activeParticleCount * 3));
   }, [geometries, activeParticleCount]);
 
   const getZOffsetForState = (stateIndex: number) => {
@@ -103,6 +103,7 @@ export const ParticleSystem: React.FC = () => {
     const time = state.clock.getElapsedTime();
     const geometry = pointsRef.current.geometry;
     const positions = geometry.attributes.position.array as Float32Array;
+    const colorsArr = geometry.attributes.color.array as Float32Array;
 
     // --- SCROLL MATH ---
     const floatIndex = scrollProgress * (STATE_COUNT - 1);
@@ -110,8 +111,10 @@ export const ParticleSystem: React.FC = () => {
     const nextIndex = Math.min(currentIndex + 1, STATE_COUNT - 1);
     const blendFactor = floatIndex - currentIndex;
 
-    const currentBuffer = geometries[currentIndex];
-    const nextBuffer = geometries[nextIndex];
+    const currentBuffer = geometries[currentIndex].positions;
+    const nextBuffer = geometries[nextIndex].positions;
+    const currentColorBuffer = geometries[currentIndex].colors;
+    const nextColorBuffer = geometries[nextIndex].colors;
 
     const distanceToNearest = Math.abs(floatIndex - Math.round(floatIndex));
     const transitionIntensity = Math.min(1, distanceToNearest * 4);
@@ -128,19 +131,6 @@ export const ParticleSystem: React.FC = () => {
 
     currentZOffset.current += (targetZOffset - currentZOffset.current) * 0.1;
     currentOpacity.current += (targetOpacity - currentOpacity.current) * 0.1;
-
-    // --- COLOR INTERPOLATION (THEME AWARE) ---
-    const palette = theme === 'dark' ? colors.dark : colors.light;
-    let targetColor = palette.blue;
-
-    if (floatIndex < 1.0) {
-      targetColor = palette.hero.clone().lerp(palette.blue, floatIndex);
-    } else if (floatIndex > 6.0) {
-      const t = Math.max(0, floatIndex - 6.0);
-      targetColor = palette.blue.clone().lerp(palette.signal, t);
-    }
-
-    currentColor.current.lerp(targetColor, 0.05);
 
     // --- MOUSE & SCALE ---
     hoverRef.current.x += (mousePosition.x * 5 - hoverRef.current.x) * 0.1;
@@ -177,10 +167,12 @@ export const ParticleSystem: React.FC = () => {
         tx += Math.sin(time + i) * 0.02 * noiseMix * settleFactor;
       }
 
-      if (swarmIntensity > 0.01) {
-        tx += (Math.sin(time * 0.5 + i * 0.1) * 0.5 + hoverRef.current.x * 0.5) * swarmIntensity;
-        ty += (Math.cos(time * 0.3 + i * 0.1) * 0.5 - hoverRef.current.y * 0.5) * swarmIntensity;
-      }
+      // Apply mouse interaction everywhere (subtle baseline + strong swarm in personal section)
+      const baseIntensity = 0.1; // Baseline subtle mouse reaction for all sections
+      const totalIntensity = swarmIntensity + baseIntensity;
+      
+      tx += (Math.sin(time * 0.5 + i * 0.1) * 0.5 + hoverRef.current.x * 0.5) * totalIntensity;
+      ty += (Math.cos(time * 0.3 + i * 0.1) * 0.5 - hoverRef.current.y * 0.5) * totalIntensity;
 
       if (currentIndex === PortfolioState.SIGNAL || nextIndex === PortfolioState.SIGNAL) {
         const signalIntensity = Math.max(0, floatIndex - (PortfolioState.SIGNAL - 1));
@@ -198,15 +190,30 @@ export const ParticleSystem: React.FC = () => {
       positions[idx] = tx;
       positions[idx + 1] = ty;
       positions[idx + 2] = tz;
+      
+      const r1 = currentColorBuffer[idx];
+      const g1 = currentColorBuffer[idx + 1];
+      const b1 = currentColorBuffer[idx + 2];
+      
+      const r2 = nextColorBuffer[idx];
+      const g2 = nextColorBuffer[idx + 1];
+      const b2 = nextColorBuffer[idx + 2];
+
+      colorsArr[idx] = r1 + (r2 - r1) * blendFactor;
+      colorsArr[idx + 1] = g1 + (g2 - g1) * blendFactor;
+      colorsArr[idx + 2] = b1 + (b2 - b1) * blendFactor;
     }
 
     geometry.attributes.position.needsUpdate = true;
+    geometry.attributes.color.needsUpdate = true;
 
     accumulatedRotation.current += delta * 0.05 * settleFactor;
     pointsRef.current.rotation.y = accumulatedRotation.current;
 
     const material = pointsRef.current.material as THREE.PointsMaterial;
-    material.color.set(currentColor.current);
+    // Set base color to white to allow vertex colors to show purely. 
+    // In light mode, maybe dim slightly so bright particles don't blend into white bg.
+    material.color.set(theme === 'light' ? 0xdddddd : 0xffffff);
 
     // Scale particles up slightly in signal state
     if (floatIndex > PortfolioState.SIGNAL - 0.5) {
@@ -228,10 +235,16 @@ export const ParticleSystem: React.FC = () => {
           array={currentPositions}
           itemSize={3}
         />
+        <bufferAttribute
+          attach="attributes-color"
+          count={activeParticleCount}
+          array={currentColors}
+          itemSize={3}
+        />
       </bufferGeometry>
       <pointsMaterial
         size={activeParticleCount < 2000 ? 0.055 : (theme === 'light' ? 0.05 : 0.04)}
-        color="#3b82f6"
+        vertexColors={true}
         transparent
         opacity={theme === 'light' ? 0.9 : 0.8}
         sizeAttenuation={true}

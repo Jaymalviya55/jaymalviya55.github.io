@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview --host --port 5173"
   },
   "dependencies": {
     "@popperjs/core": "^2.11.8",
