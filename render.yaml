@@ -18,8 +18,9 @@ services:
       - key: NODE_ENV
         value: production
 
-  - type: static
+  - type: web
     name: portfolio-frontend
+    env: static
     buildCommand: npm install && npm run build
     staticPublishPath: dist
     routes:
