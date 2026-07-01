@@ -17,7 +17,11 @@ const App: React.FC = () => {
   const [views, setViews] = useState<number | null>(null);
 
   useEffect(() => {
-    fetch('http://localhost:3000/api/pageview', { method: 'POST' })
+    const apiUrl = import.meta.env.VITE_API_URL 
+      ? `${import.meta.env.VITE_API_URL}/api/pageview`
+      : `http://${window.location.hostname}:3000/api/pageview`;
+      
+    fetch(apiUrl, { method: 'POST' })
       .then(res => res.json())
       .then(data => setViews(data.views))
       .catch(err => console.error("Could not record page view", err));

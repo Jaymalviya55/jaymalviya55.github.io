@@ -13,7 +13,11 @@ export const Signal: React.FC = () => {
         e.preventDefault();
         setStatus('submitting');
         try {
-            const res = await fetch('http://localhost:3000/api/contact', {
+            const apiUrl = import.meta.env.VITE_API_URL 
+                ? `${import.meta.env.VITE_API_URL}/api/contact`
+                : `http://${window.location.hostname}:3000/api/contact`;
+                
+            const res = await fetch(apiUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData)

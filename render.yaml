@@ -1,0 +1,33 @@
+databases:
+  - name: portfolio-db
+    databaseName: portfolio
+    user: postgres
+    plan: free
+
+services:
+  - type: web
+    name: portfolio-backend
+    env: docker
+    dockerfilePath: ./server/Dockerfile
+    dockerContext: ./server
+    plan: free
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: portfolio-db
+          property: connectionString
+      - key: NODE_ENV
+        value: production
+
+  - type: web
+    name: portfolio-frontend
+    env: static
+    plan: free
+    buildCommand: npm install && npm run build
+    publishPath: dist
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: portfolio-backend
+          property: url
